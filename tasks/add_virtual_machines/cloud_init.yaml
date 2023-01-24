@@ -1,7 +1,7 @@
 ---
 - name: Generate an cloudinit configuration
   ansible.builtin.include_role:
-    name: cloud_init
+    name: pimvh.cloud_init
   vars:
     cloud_init_path: "{{ _temp_cloud_init_config_storage.path }}"
     cloud_init_enable_ssh_ca: "{{ libvirt_cloud_init_enable_ssh_ca }}"
