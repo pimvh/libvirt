@@ -1,0 +1,86 @@
+---
+- name: Get running VMs
+  community.libvirt.virt:
+    command: list_vms
+  register: _existing_vms
+  check_mode: false
+  changed_when: false
+
+- name: Set image name
+  ansible.builtin.set_fact:
+    image_name: "{{ virtual_machine.image.url | split('/') | last }}"
+    pool_name: "{{ virtual_machine.pool }}"
+
+- name: Template virtual install command
+  ansible.builtin.set_fact:
+    _virt_install_cmd: |
+      virt-install
+       --name={{ virtual_machine.name }}
+       --ram={{ virtual_machine.ram | string }}
+       --vcpus={{ virtual_machine.vcpus | string }}
+
+       --disk path={{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2,
+      size={{ virtual_machine.disksize }},
+      backing_store={{ libvirt_pools[pool_name].dir }}/{{ image_name }},
+      pool={{ virtual_machine.pool }}
+
+       {% for network in virtual_machine.networks +%}--network network={{ network }},
+      model=virtio
+      {% endfor %}
+
+       --os-variant {{ virtual_machine.os }}
+
+       --cloud-init disable=on,
+      user-data={{ _temp_cloud_init_config_storage.path }}/user-data-{{ virtual_machine.name }}.yaml,
+      network-config={{ _temp_cloud_init_config_storage.path }}/network-data-{{ virtual_machine.name }}.yaml
+
+       --noautoconsole
+       --graphics none
+
+- name: Display _virt_install_cmd
+  ansible.builtin.debug:
+    msg: "{{ _virt_install_cmd  }}"
+
+- name: Create VM when it does not exist
+  ansible.builtin.command: "{{ _virt_install_cmd | replace('\n', '') }}"
+  become: true
+  changed_when: true
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Autostart VM
+  community.libvirt.virt:
+    name: "{{ virtual_machine.name }}"
+    autostart: true
+  changed_when: true
+  become: true
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Ensure VM is started
+  community.libvirt.virt:
+    name: "{{ virtual_machine.name }}"
+    state: running
+  become: true
+  register: vm_start_results
+  until: "vm_start_results is success"
+  retries: 5
+  delay: 10
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Wait until VM is powered off (after cloud_init run)
+  community.libvirt.virt:
+    command: list_vms
+    state: shutdown
+  become: true
+  register: vm_stopped_results
+  until: "virtual_machine.name in vm_stopped_results.list_vms"
+  retries: 30
+  delay: 10
+  ignore_errors: "{{ ansible_check_mode }}"
+  when: libvirt_cloud_init_reboot_on_finish
+
+- name: Ensure VM is powered on again cloud_init run
+  community.libvirt.virt:
+    name: "{{ virtual_machine.name }}"
+    state: running
+  become: true
+  when: libvirt_cloud_init_reboot_on_finish

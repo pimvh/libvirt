@@ -1,0 +1,42 @@
+---
+- name: Assert required variables for role are defined
+  ansible.builtin.include_tasks:
+    file: assert.yaml
+    apply:
+      delegate_to: localhost
+      run_once: true
+
+- name: Convert virtualmachines to list
+  ansible.builtin.set_fact:
+    libvirt_virtual_machines: "{{ libvirt_virtual_machines.values() | list }}"
+
+- name: Assert required variables for each VM are defined
+  ansible.builtin.include_tasks:
+    file: assert_vm.yaml
+    apply:
+      delegate_to: localhost
+      run_once: true
+  loop: "{{ libvirt_virtual_machines }}"
+  loop_control:
+    loop_var: virtual_machine
+
+- name: Ensure requirements in place
+  ansible.builtin.package:
+    name:
+      - guestfs-tools
+      - python3-libvirt
+      - cloud-utils
+      - virtinst
+    state: present
+  become: true
+
+- name: Check if KVM is installed correctly and is working
+  ansible.builtin.command: kvm-ok
+  changed_when: false
+
+- name: Create new VMs when required
+  ansible.builtin.include_tasks:
+    file: add_virtual_machines.yaml
+  loop: "{{ libvirt_virtual_machines }}"
+  loop_control:
+    loop_var: virtual_machine

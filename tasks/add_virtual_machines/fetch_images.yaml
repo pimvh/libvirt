@@ -1,0 +1,79 @@
+---
+- name: Get current image var
+  ansible.builtin.set_fact:
+    image: "{{ virtual_machine.image }}"
+    pool_name: "{{ virtual_machine.pool }}"
+
+- name: Set image name
+  ansible.builtin.set_fact:
+    image_name: "{{ image.url | split('/') | last }}"
+
+- name: Fetch correct image hash
+  block:
+    - name: Create a temporary directory
+      ansible.builtin.tempfile:
+        state: directory
+      check_mode: false
+      changed_when: false
+      register: tempdir
+
+    - name: Fetch hashes file
+      ansible.builtin.get_url:
+        url: "{{ image.hashes_url }}"
+        dest: "{{ tempdir.path }}/SHA256SUMS"
+        mode: u=rw,g=r,o=
+
+    - name: Fetch line with hash from hashes file
+      ansible.builtin.shell: set -o pipefail && cat {{ tempdir.path }}/SHA256SUMS | grep -i {{ image_name }}
+      args:
+        executable: /bin/bash
+      register: "checksum_line"
+      changed_when: false
+
+  always:
+    - name: Remove temporary directory
+      ansible.builtin.file:
+        name: "{{ tempdir.path }}"
+        state: absent
+      check_mode: false
+      changed_when: false
+
+- name: Show hash
+  ansible.builtin.debug:
+    msg: "{{ checksum_line.stdout }}"
+
+- name: Fetch image when not present
+  block:
+    - name: Check if image is present
+      ansible.builtin.get_url:
+        url: "{{ image.url }}"
+        dest: "{{ libvirt_pools[pool_name].dir }}/{{ image_name }}"
+        checksum: "sha256:{{ checksum_line.stdout | split(' ') | first }}"
+        mode: u=rw,g=r,o=
+      become: true
+      ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Create snapshot of image (when not present)
+  block:
+    - name: Check if image is present
+      ansible.builtin.stat:
+        path: "{{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
+      register: qcow2_image
+      become: true
+
+    - name: Create snapshot of image
+      ansible.builtin.command: >
+        qemu-img create -b {{ libvirt_pools[pool_name].dir }}/{{ image_name }}
+         -f qcow2 {{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2
+         -F qcow2 {{ virtual_machine.disksize }}
+      changed_when: true
+      when: not qcow2_image.stat.exists
+      become: true
+
+    - name: Make qcow2 disk readable by more users
+      ansible.builtin.file:
+        path: "{{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
+        mode: u=rw,g=rw,o=r
+        owner: libvirt-qemu
+        group: kvm
+      become: true

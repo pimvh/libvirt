@@ -1,0 +1,47 @@
+---
+- name: Get running VMs
+  community.libvirt.virt:
+    command: list_vms
+  register: _existing_vms
+  check_mode: false
+  changed_when: false
+
+- name: Create VM when it is not running already
+  when: "virtual_machine.name not in _existing_vms.list_vms"
+  block:
+    - name: Create pools
+      ansible.builtin.include_tasks:
+        file: add_virtual_machines/create_pools.yaml
+
+    - name: Create networks
+      ansible.builtin.include_tasks:
+        file: add_virtual_machines/create_networks.yaml
+
+    - name: Fetch images
+      ansible.builtin.include_tasks:
+        file: add_virtual_machines/fetch_images.yaml
+
+    - name: Create cloud-init configuration and create VM
+      block:
+        - name: Create and change permission on temporary key directory (clientside)
+          ansible.builtin.tempfile:
+            state: directory
+          check_mode: false
+          changed_when: false
+          register: _temp_cloud_init_config_storage
+
+        - name: Create cloud configuration for each hosts
+          ansible.builtin.include_tasks:
+            file: add_virtual_machines/cloud_init.yaml
+
+        - name: Create VM with lib-virt
+          ansible.builtin.include_tasks:
+            file: add_virtual_machines/create_vms.yaml
+      always:
+        - name: Remove cloud-init config directory
+          ansible.builtin.file:
+            name: "{{ _temp_cloud_init_config_storage.path }}"
+            state: absent
+          check_mode: false
+          changed_when: false
+          delegate_to: "localhost"

@@ -1,0 +1,14 @@
+---
+- name: Generate an cloudinit configuration
+  ansible.builtin.include_role:
+    name: cloud_init
+  vars:
+    cloud_init_path: "{{ _temp_cloud_init_config_storage.path }}"
+    cloud_init_enable_ssh_ca: "{{ libvirt_cloud_init_enable_ssh_ca }}"
+    cloud_init_enable_ansible_pull: "{{ libvirt_cloud_init_enable_ansible_pull }}"
+    cloud_init_register_github_key: "{{ libvirt_cloud_init_register_github_key }}"
+    cloud_init_add_to_known_hosts: "{{ libvirt_cloud_init_add_to_known_hosts }}"
+    cloud_init_reboot_on_finish: "{{ libvirt_cloud_init_reboot_on_finish }}"
+    cloud_init_machine_name: "{{ virtual_machine.name }}"
+    cloud_init_userdata: "{{ virtual_machine.cloud_init_userdata }}"
+    cloud_init_networkdata: "{{ virtual_machine.cloud_init_networkdata }}"

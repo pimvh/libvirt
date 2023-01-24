@@ -1,0 +1,14 @@
+---
+- name: List available pools
+  community.libvirt.virt_pool:
+    command: list_pools
+  register: current_pools
+  become: true
+
+- name: Create pool when not in pools
+  community.libvirt.virt_pool:
+    command: define
+    name: "{{ virtual_machine.pool }}"
+    xml: "{{ libvirt_pools[virtual_machine.pool].xml }}"
+  when: not virtual_machine.pool in current_pools
+  become: true

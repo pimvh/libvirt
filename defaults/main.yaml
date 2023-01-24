@@ -1,0 +1,11 @@
+---
+libvirt_pools: {}
+libvirt_networks: {}
+
+libvirt_cloud_init_enable_ssh_ca: true
+libvirt_cloud_init_enable_ansible_pull: false
+libvirt_cloud_init_register_github_key: false
+libvirt_cloud_init_add_to_known_hosts: true
+libvirt_cloud_init_reboot_on_finish: true
+
+libvirt_virtual_machines: {}
