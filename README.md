@@ -103,6 +103,11 @@ roles:
 # TLDR - What will happen if I run this
 
 - Assert required variables are defined
+- Check if required variables are defined for a VM
+- Fetch required image.
+- Generating a cloud-init config (see underlying role)
+- Add the required networks and pools
+- Create VM.
 
 # Future Improvements
 
