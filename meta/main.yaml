@@ -17,8 +17,9 @@ galaxy_info:
 
   galaxy_tags:
     - libvirt
-    - cloud-init
+    - cloudinit
     - sshca
     - netplan
+    - dualstack
 
 dependencies: []
