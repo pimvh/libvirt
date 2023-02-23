@@ -19,16 +19,15 @@ ansible-galaxy install -r requirements.yaml
 Review the variables as shown in defaults.
 
 ```
-libvirt_pools: []
-# libvirt_pools: # Example
-#   default:
-#     dir: "/var/lib/libvirt/images"
-#     xml: ....
+libvirt_pools:
+  - name: nfs
+    dir: "....."
+    xml: '....'
+# ...
 
-libvirt_networks: []
-# libvirt_networks: # Example
-#   vrbr1:
-      xml: ....
+libvirt_networks:
+  - name: ...
+    xml: '....'
 
 # Variables to pass to underlying cloud_init role
 libvirt_cloud_init_enable_ssh_ca: true
@@ -38,9 +37,7 @@ libvirt_cloud_init_add_to_known_hosts: true
 libvirt_cloud_init_reboot_on_finish: true
 
 libvirt_virtual_machines:
-  []
-  # guest-01: # Example config
-  #   name: guest-01
+  # - name: guest-01
   #   ram: 2048
   #   disksize: 20
   #   vcpus: 2
