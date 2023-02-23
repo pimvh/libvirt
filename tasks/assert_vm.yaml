@@ -1,27 +1,4 @@
 ---
-- name: Verify that required variables are defined
-  ansible.builtin.assert:
-    that:
-      - "{{ item }} is defined"
-      - "{{ item }} | string | length > 0"
-      - "{{ item }} != None"
-    fail_msg: "{{ item }} needs to be set for the role to work"
-    success_msg: "Required variable {{ item }} is defined"
-  changed_when: false
-  diff: false
-  loop:
-    - virtual_machine.image.url
-    - virtual_machine.image.hashes_url
-    - virtual_machine.pool
-    - virtual_machine.name
-    - virtual_machine.ram
-    - virtual_machine.vcpus
-    - virtual_machine.disksize
-    - virtual_machine.networks
-    - virtual_machine.os
-    - virtual_machine.cloud_init_userdata
-    - virtual_machine.cloud_init_networkdata
-
 - name: Verify that required networks are defined
   ansible.builtin.assert:
     that: "libvirt_networks.{{ item }} is defined"

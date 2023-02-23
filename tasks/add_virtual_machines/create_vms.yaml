@@ -16,7 +16,7 @@
     _virt_install_cmd: |
       virt-install
        --name={{ virtual_machine.name }}
-       --ram={{ virtual_machine.ram | string }}
+       --memory={{ virtual_machine.ram | string }}
        --vcpus={{ virtual_machine.vcpus | string }}
 
        --disk path={{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2,
@@ -28,7 +28,7 @@
       model=virtio
       {% endfor %}
 
-       --os-variant {{ virtual_machine.os }}
+       --os-variant {% if not virtual_machine.os is defined %}detect=on,require=on{% else %}{{ virtual_machine.os }}{% endif %}
 
        --cloud-init disable=on,
       user-data={{ _temp_cloud_init_config_storage.path }}/user-data-{{ virtual_machine.name }}.yaml,
