@@ -9,7 +9,6 @@
 - name: Set image name
   ansible.builtin.set_fact:
     image_name: "{{ virtual_machine.image.url | split('/') | last }}"
-    pool_name: "{{ virtual_machine.pool }}"
 
 - name: Template virtual install command
   ansible.builtin.set_fact:
@@ -19,9 +18,9 @@
        --memory={{ virtual_machine.ram | string }}
        --vcpus={{ virtual_machine.vcpus | string }}
 
-       --disk path={{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2,
+       --disk path={{ vm_pool.dir }}/{{ virtual_machine.name }}-cloudinit.qcow2,
       size={{ virtual_machine.disksize }},
-      backing_store={{ libvirt_pools[pool_name].dir }}/{{ image_name }},
+      backing_store={{ vm_pool.dir }}/{{ image_name }},
       pool={{ virtual_machine.pool }}
 
        {% for network in virtual_machine.networks +%}--network network={{ network }},

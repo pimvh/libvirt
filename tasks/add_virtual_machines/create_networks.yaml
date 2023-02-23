@@ -16,7 +16,7 @@
     name: "{{ network.name }}"
     xml: "{{ network.xml }}"
     state: active
-  when: not network in current_networks
+  when: not network.name in current_networks
   become: true
   loop: "{{ vm_networks }}"
   loop_control:

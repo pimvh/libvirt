@@ -2,7 +2,6 @@
 - name: Get current image var
   ansible.builtin.set_fact:
     image: "{{ virtual_machine.image }}"
-    pool_name: "{{ virtual_machine.pool }}"
 
 - name: Set image name
   ansible.builtin.set_fact:
@@ -24,7 +23,8 @@
         mode: u=rw,g=r,o=
 
     - name: Fetch line with hash from hashes file
-      ansible.builtin.shell: set -o pipefail && cat {{ tempdir.path }}/SHA256SUMS | grep -i {{ image_name }}
+      ansible.builtin.shell: set -o pipefail && cat {{ tempdir.path }}/SHA256SUMS
+        | grep -i {{ image_name }}
       args:
         executable: /bin/bash
       register: "checksum_line"
@@ -47,7 +47,7 @@
     - name: Check if image is present
       ansible.builtin.get_url:
         url: "{{ image.url }}"
-        dest: "{{ libvirt_pools[pool_name].dir }}/{{ image_name }}"
+        dest: "{{ vm_pool.dir }}/{{ image_name }}"
         checksum: "sha256:{{ checksum_line.stdout | split(' ') | first }}"
         mode: u=rw,g=r,o=
       become: true
@@ -57,14 +57,14 @@
   block:
     - name: Check if image is present
       ansible.builtin.stat:
-        path: "{{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
+        path: "{{ vm_pool.dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
       register: qcow2_image
       become: true
 
     - name: Create snapshot of image
       ansible.builtin.command: >
-        qemu-img create -b {{ libvirt_pools[pool_name].dir }}/{{ image_name }}
-         -f qcow2 {{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2
+        qemu-img create -b {{ vm_pool.dir }}/{{ image_name }}
+         -f qcow2 {{ vm_pool.dir }}/{{ virtual_machine.name }}-cloudinit.qcow2
          -F qcow2 {{ virtual_machine.disksize }}
       changed_when: true
       when: not qcow2_image.stat.exists
@@ -72,7 +72,7 @@
 
     - name: Make qcow2 disk readable by more users
       ansible.builtin.file:
-        path: "{{ libvirt_pools[pool_name].dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
+        path: "{{ vm_pool.dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"
         mode: u=rw,g=rw,o=r
         owner: libvirt-qemu
         group: kvm
