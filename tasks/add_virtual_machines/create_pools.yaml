@@ -5,10 +5,14 @@
   register: current_pools
   become: true
 
+- name: Find correct pool
+  ansible.builtin.set_fact:
+    vm_pool: "{{ libvirt_pools | get_pool(virtual_machine.pool) }}"
+
 - name: Create pool when not in pools
   community.libvirt.virt_pool:
     command: define
-    name: "{{ virtual_machine.pool }}"
-    xml: "{{ libvirt_pools[virtual_machine.pool].xml }}"
-  when: not virtual_machine.pool in current_pools
+    name: "{{ vm_pool.name }}"
+    xml: "{{ vm_pool.xml }}"
+  when: not vm_pool.name in current_pools
   become: true

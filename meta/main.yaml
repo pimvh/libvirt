@@ -31,12 +31,16 @@ argument_specs:
       This entrypoint adds libvirt VMs to the system, optionally using cloud-init.
     options:
       libvirt_pools:
-        type: dict
-        elements: str
+        type: list
+        elements: dict
         required: true
-        default: {}
         description: the name and attributes related to the pool
         options:
+          name:
+            type: str
+            required: true
+            description: "name of the pool"
+
           dir:
             type: str
             required: true
@@ -47,12 +51,15 @@ argument_specs:
             description: "the libvirt XML definition of the pool"
 
       libvirt_networks:
-        type: dict
-        elements: str
+        type: list
+        elements: dict
         required: true
-        default: {}
         description: the name and attributes of libvirt managed networks
         options:
+          name:
+            type: str
+            required: true
+            description: "name of the network"
           xml:
             type: str
             required: true
@@ -91,10 +98,10 @@ argument_specs:
         description: Whether to reboot the VM when cloud_init is done
 
       libvirt_virtual_machines:
-        type: dict
+        type: list
+        elements: dict
         required: true
         description: A yaml definition of the requested VMs to be present on the system.
-        elements: dict
         options:
           name:
             type: str
@@ -105,6 +112,11 @@ argument_specs:
             type: int
             required: true
             description: How much RAM should be allocated to the VM (in MiB)
+
+          vcpus:
+            type: int
+            required: true
+            description: How much CPUs should be allocated to the VM
 
           disksize:
             type: int
@@ -145,7 +157,7 @@ argument_specs:
           cloud_init_userdata:
             type: dict
             required: true
-            description: cloud-init userdata, passed to underlying model
+            description: cloud-init userdata, passed to underlying role cloud_init
             options:
               hostname:
                 type: str
@@ -181,6 +193,14 @@ argument_specs:
                     type: str
                     required: true
                     description: shell for the new user
+                  sudo:
+                    type: str
+                    required: true
+                    description: sudo string for the new user
+                  groups:
+                    type: str
+                    required: true
+                    description: groups for the new user (,_ seperated)
                   passwd:
                     type: str
                     required: true
@@ -190,27 +210,32 @@ argument_specs:
                     required: true
                     description: whether to lock the user (should be false)
 
-              run_cmd:
+              runcmd:
                 type: list
                 elements: str
-                required: true
+                required: false
                 description: Additional commands to run on the system
 
-              cloud_init_networkdata:
-                type: dict
+              packages:
+                type: list
                 elements: str
-                required: true
-                options:
-                  ipv4:
-                    type: str
-                    required: false
-                    description: IPv4 address of the VM
-                  ipv6:
-                    type: str
-                    required: false
-                    description: IPv6 address of the VM
-                  netplan:
-                    type: dict
-                    required: false
-                    description: Full netplan config of the VM, can be based on defaults,
-                      see cloud_init
+                required: false
+                description: Additional packages to install on the system
+
+          cloud_init_networkdata:
+            type: dict
+            required: true
+            options:
+              ipv4:
+                type: str
+                required: false
+                description: IPv4 address of the VM
+              ipv6:
+                type: str
+                required: false
+                description: IPv6 address of the VM
+              netplan:
+                type: dict
+                required: false
+                description: Full netplan config of the VM, can be based on defaults,
+                  see cloud_init

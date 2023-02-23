@@ -1,8 +1,4 @@
 ---
-- name: Convert virtualmachines to list
-  ansible.builtin.set_fact:
-    libvirt_virtual_machines: "{{ libvirt_virtual_machines.values() | list }}"
-
 - name: Assert required variables for each VM are defined
   ansible.builtin.include_tasks:
     file: assert_vm.yaml

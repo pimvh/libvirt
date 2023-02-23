@@ -5,23 +5,28 @@
   register: current_networks
   become: true
 
+
+- name: Find correct network
+  ansible.builtin.set_fact:
+    vm_networks: "{{ libvirt_networks | get_networks(virtual_machine.networks) }}"
+
 - name: Create network when not in networks
   community.libvirt.virt_net:
     command: define
-    name: "{{ network }}"
-    xml: "{{ libvirt_networks[network].xml }}"
+    name: "{{ network.name }}"
+    xml: "{{ network.xml }}"
     state: active
   when: not network in current_networks
   become: true
-  loop: "{{ virtual_machine.networks }}"
+  loop: "{{ vm_networks }}"
   loop_control:
     loop_var: "network"
 
 - name: Ensure that network will be started at boot
   community.libvirt.virt_net:
     autostart: true
-    name: "{{ network }}"
+    name: "{{ network.name }}"
   become: true
-  loop: "{{ virtual_machine.networks }}"
+  loop: "{{ vm_networks }}"
   loop_control:
     loop_var: "network"
