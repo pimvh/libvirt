@@ -23,9 +23,9 @@
       backing_store={{ vm_pool.dir }}/{{ image_name }},
       pool={{ virtual_machine.pool }}
 
-       {% for network in virtual_machine.networks +%}--network network={{ network }},
+      {% for network in virtual_machine.networks +%} --network network={{ network }},
       model=virtio
-      {% endfor %}
+      {% endfor +%}
 
        --os-variant {% if not virtual_machine.os is defined %}detect=on,require=on{% else %}{{ virtual_machine.os }}{% endif %}
 
