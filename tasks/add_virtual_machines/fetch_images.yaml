@@ -23,8 +23,7 @@
         mode: u=rw,g=r,o=
 
     - name: Fetch line with hash from hashes file
-      ansible.builtin.shell: set -o pipefail && cat {{ tempdir.path }}/SHA256SUMS
-        | grep -i {{ image_name }}
+      ansible.builtin.shell: set -o pipefail && cat {{ tempdir.path }}/SHA256SUMS | grep -i {{ image_name }}
       args:
         executable: /bin/bash
       register: "checksum_line"
@@ -43,6 +42,7 @@
     msg: "{{ checksum_line.stdout }}"
 
 - name: Fetch image when not present
+  ignore_errors: "{{ ansible_check_mode }}"
   block:
     - name: Check if image is present
       ansible.builtin.get_url:
@@ -51,10 +51,11 @@
         checksum: "sha256:{{ checksum_line.stdout | split(' ') | first }}"
         mode: u=rw,g=r,o=
       become: true
-      ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Create snapshot of image (when not present)
+  ignore_errors: "{{ ansible_check_mode }}"
   block:
+
     - name: Check if image is present
       ansible.builtin.stat:
         path: "{{ vm_pool.dir }}/{{ virtual_machine.name }}-cloudinit.qcow2"

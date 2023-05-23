@@ -38,6 +38,7 @@ libvirt_cloud_init_reboot_on_finish: true
 
 libvirt_virtual_machines:
   # - name: guest-01
+  #   ssh_passphrase: ....
   #   ram: 2048
   #   disksize: 20
   #   vcpus: 2

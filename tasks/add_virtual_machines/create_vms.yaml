@@ -38,7 +38,7 @@
 
 - name: Display _virt_install_cmd
   ansible.builtin.debug:
-    msg: "{{ _virt_install_cmd  }}"
+    msg: "{{ _virt_install_cmd }}"
 
 - name: Create VM when it does not exist
   ansible.builtin.command: "{{ _virt_install_cmd | replace('\n', '') }}"

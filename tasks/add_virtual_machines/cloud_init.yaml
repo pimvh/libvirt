@@ -10,5 +10,6 @@
     cloud_init_add_to_known_hosts: "{{ libvirt_cloud_init_add_to_known_hosts }}"
     cloud_init_reboot_on_finish: "{{ libvirt_cloud_init_reboot_on_finish }}"
     cloud_init_machine_name: "{{ virtual_machine.name }}"
+    cloud_init_machine_ssh_passhrase: "{{ virtual_machine.ssh_passphrase }}"
     cloud_init_userdata: "{{ virtual_machine.cloud_init_userdata }}"
     cloud_init_networkdata: "{{ virtual_machine.cloud_init_networkdata }}"

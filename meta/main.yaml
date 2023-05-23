@@ -5,7 +5,7 @@ galaxy_info:
 
   license: GPL-3.0-only
 
-  min_ansible_version: 2.1
+  min_ansible_version: "2.14"
 
   platforms:
     - name: Ubuntu
@@ -81,15 +81,13 @@ argument_specs:
         type: bool
         required: false
         default: false
-        description: Whether to register an SSH key at github for the ansible user
-          on each VM
+        description: Whether to register an SSH key at github for the ansible user on each VM
 
       libvirt_cloud_init_add_to_known_hosts:
         type: bool
         required: false
         default: true
-        description: Whether to add the host ca to the known host file of the ansible
-          controller
+        description: Whether to add the host ca to the known host file of the ansible controller
 
       libvirt_cloud_init_reboot_on_finish:
         type: bool
@@ -107,6 +105,11 @@ argument_specs:
             type: str
             required: true
             description: "name of the VM"
+
+          ssh_passphrase:
+            type: str
+            required: true
+            description: "passphrase of the SSH key of the ansible user"
 
           ram:
             type: int
@@ -132,8 +135,7 @@ argument_specs:
           os:
             type: str
             required: false
-            description: the OS of the VM, see virt-install --osinfo list, fallback
-              to autodetection
+            description: the OS of the VM, see virt-install --osinfo list, fallback to autodetection
 
           pool:
             type: str
@@ -176,10 +178,9 @@ argument_specs:
                 type: list
                 elements: dict
                 required: true
-                description: Additional users to create on the VM, which will only
-                  create an ansible user (pass [] for none), passed directly into
-                  the cloud-init yaml, see docs for full options. Some things are
-                  validate here.
+                description: |
+                  Additional users to create on the VM, which will only create an ansible user (pass [] for none),
+                  passed directly into the cloud-init yaml, see docs for full options. Some things are validate here.
                 options:
                   name:
                     type: str
@@ -237,5 +238,4 @@ argument_specs:
               netplan:
                 type: dict
                 required: false
-                description: Full netplan config of the VM, can be based on defaults,
-                  see cloud_init
+                description: Full netplan config of the VM, can be based on defaults, see cloud_init
