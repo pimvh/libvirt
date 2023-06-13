@@ -77,12 +77,6 @@ argument_specs:
         default: false
         description: Whether to enable ansible pull for the libvirt VMs
 
-      libvirt_cloud_init_register_github_key:
-        type: bool
-        required: false
-        default: false
-        description: Whether to register an SSH key at github for the ansible user on each VM
-
       libvirt_cloud_init_add_to_known_hosts:
         type: bool
         required: false
@@ -106,10 +100,10 @@ argument_specs:
             required: true
             description: "name of the VM"
 
-          ssh_passphrase:
+          ansible_user_passwd_hash:
             type: str
             required: true
-            description: "passphrase of the SSH key of the ansible user"
+            description: "the password hash of the ansible user"
 
           ram:
             type: int
@@ -155,6 +149,67 @@ argument_specs:
                 type: str
                 required: true
                 description: from which URL to pull the image hash for verification
+
+          ansible_pull:
+            type: dict
+            required: false
+            description: optional configuration for ansiblepull when it is enabled
+            options:
+              enabled:
+                type: bool
+                required: true
+                description: whether to enable ansible_pull for this VM
+
+              repo_owner:
+                type: str
+                required: true
+                description: The owner of the Github repo to use for Ansible pull.
+
+              repo_name:
+                type: str
+                required: true
+                description: The name of the Github repo to use for Ansible pull.
+
+              playbook_name:
+                type: str
+                required: true
+                description: Playbook name to use for Ansible pull.
+
+              deploy_key_name:
+                type: str
+                required: true
+                description: Name of deploy key to use for Ansible pull.
+
+          ssh_ca:
+            type: dict
+            required: false
+            description: optional configuration for an SSH CA when it is enabled
+            options:
+              enabled:
+                type: bool
+                required: true
+                description: whether to enable ansible_pull for this VM
+
+              host_ca_privatekey:
+                type: str
+                required: true
+                description: The private key of the host ca to sign the Host key of the new machine with.
+
+              host_ca_privatekey_pass:
+                type: str
+                required: true
+                description: The passphrase of private key of the host ca to sign the Host key of the new machine with.
+
+              host_ca_publickey:
+                type: str
+                required: true
+                description: The public key of the host ca to embed in the machines known host file.
+
+              user_ca_publickeys:
+                type: list
+                elements: str
+                required: true
+                description: A list of trusted public keys which are user CAs.
 
           cloud_init_userdata:
             type: dict

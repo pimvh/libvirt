@@ -33,8 +33,7 @@
       user-data={{ _temp_cloud_init_config_storage.path }}/user-data-{{ virtual_machine.name }}.yaml,
       network-config={{ _temp_cloud_init_config_storage.path }}/network-data-{{ virtual_machine.name }}.yaml
 
-       --noautoconsole
-       --graphics none
+      {% if libvirt_cloud_init_reboot_on_finish is sameas true %} --wait=-1{% endif %}
 
 - name: Display _virt_install_cmd
   ansible.builtin.debug:
@@ -54,32 +53,9 @@
   become: true
   ignore_errors: "{{ ansible_check_mode }}"
 
-- name: Ensure VM is started
+- name: Ensure VM is powered on again cloud_init run (manually start it)
   community.libvirt.virt:
     name: "{{ virtual_machine.name }}"
     state: running
   become: true
-  register: vm_start_results
-  until: "vm_start_results is success"
-  retries: 5
-  delay: 10
-  ignore_errors: "{{ ansible_check_mode }}"
-
-- name: Wait until VM is powered off (after cloud_init run)
-  community.libvirt.virt:
-    command: list_vms
-    state: shutdown
-  become: true
-  register: vm_stopped_results
-  until: "virtual_machine.name in vm_stopped_results.list_vms"
-  retries: 30
-  delay: 10
-  ignore_errors: "{{ ansible_check_mode }}"
-  when: libvirt_cloud_init_reboot_on_finish
-
-- name: Ensure VM is powered on again cloud_init run
-  community.libvirt.virt:
-    name: "{{ virtual_machine.name }}"
-    state: running
-  become: true
-  when: libvirt_cloud_init_reboot_on_finish
+  when: libvirt_cloud_init_reboot_on_finish is sameas true

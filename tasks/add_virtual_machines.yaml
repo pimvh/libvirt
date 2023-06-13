@@ -34,14 +34,14 @@
           ansible.builtin.include_tasks:
             file: add_virtual_machines/cloud_init.yaml
 
-        - name: Create VM with lib-virt
+        - name: Create VM with virt-install
           ansible.builtin.include_tasks:
             file: add_virtual_machines/create_vms.yaml
-      always:
-        - name: Remove cloud-init config directory
-          ansible.builtin.file:
-            name: "{{ _temp_cloud_init_config_storage.path }}"
-            state: absent
-          check_mode: false
-          changed_when: false
-          delegate_to: "localhost"
+  always:
+    - name: Remove cloud-init config directory
+      ansible.builtin.file:
+        name: "{{ _temp_cloud_init_config_storage.path }}"
+        state: absent
+      check_mode: false
+      changed_when: false
+      delegate_to: "localhost"
