@@ -8,7 +8,7 @@
     cloud_init_path: "{{ _temp_cloud_init_config_storage.path }}"
 
     cloud_init_machine_name: "{{ virtual_machine.name }}"
-    cloud_init_ansible_user_passwd_hash: "{{ virtual_machine.ansible_user_passwd_hash }}"
+    cloud_init_ansible_user_passwd_hash: "{{ virtual_machine.ansible_pull.ansible_user_passwd_hash }}"
 
     # actual cloud init configuration
     cloud_init_userdata: "{{ virtual_machine.cloud_init_userdata }}"
