@@ -5,6 +5,15 @@
   register: _existing_vms
   check_mode: false
   changed_when: false
+  become: true
+
+- name: Destroy the VM when recreate is true
+  community.libvirt.virt:
+    name: "{{ virtual_machine.name }}"
+    command: undefine
+    state: destroyed
+  become: true
+  when: "virtual_machine.name in _existing_vms.list_vms"
 
 - name: Create VM when it is not running already
   when: "virtual_machine.name not in _existing_vms.list_vms"
@@ -29,19 +38,22 @@
           check_mode: false
           changed_when: false
           register: _temp_cloud_init_config_storage
+          when: libvirt_cloud_init_custom
 
         - name: Create cloud configuration for each hosts
           ansible.builtin.include_tasks:
             file: add_virtual_machines/cloud_init.yaml
+          when: libvirt_cloud_init_custom
 
         - name: Create VM with virt-install
           ansible.builtin.include_tasks:
             file: add_virtual_machines/create_vms.yaml
-  always:
-    - name: Remove cloud-init config directory
-      ansible.builtin.file:
-        name: "{{ _temp_cloud_init_config_storage.path }}"
-        state: absent
-      check_mode: false
-      changed_when: false
-      delegate_to: "localhost"
+      always:
+        - name: Remove cloud-init config directory
+          ansible.builtin.file:
+            name: "{{ _temp_cloud_init_config_storage.path }}"
+            state: absent
+          check_mode: false
+          changed_when: false
+          delegate_to: "localhost"
+          when: libvirt_cloud_init_custom

@@ -1,7 +1,7 @@
 ---
 - name: Assert required variables for each VM are defined
   ansible.builtin.include_tasks:
-    file: assert_vm.yaml
+    file: assert_virtual_machine_attributes.yaml
     apply:
       delegate_to: localhost
       run_once: true
@@ -18,10 +18,12 @@
       - virtinst
     state: present
   become: true
+  when: libvirt_install_packages is sameas true
 
 - name: Check if KVM is installed correctly and is working
   ansible.builtin.command: kvm-ok
   changed_when: false
+  when: libvirt_check_kvm is sameas true
 
 - name: Create new VMs when required
   ansible.builtin.include_tasks:

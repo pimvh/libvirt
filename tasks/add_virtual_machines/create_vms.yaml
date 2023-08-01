@@ -29,11 +29,14 @@
 
        --os-variant {% if not virtual_machine.os is defined %}detect=on,require=on{% else %}{{ virtual_machine.os }}{% endif %}
 
-       --cloud-init disable=on,
+       --cloud-init disable=on,{% if libvirt_cloud_init_custom %}
       user-data={{ _temp_cloud_init_config_storage.path }}/user-data-{{ virtual_machine.name }}.yaml,
       network-config={{ _temp_cloud_init_config_storage.path }}/network-data-{{ virtual_machine.name }}.yaml
-
       {% if libvirt_cloud_init_reboot_on_finish is sameas true %} --wait=-1{% endif %}
+      {% else %}
+      root-password-generate=on
+      {% endif %}
+
 
 - name: Display _virt_install_cmd
   ansible.builtin.debug:
@@ -43,7 +46,15 @@
   ansible.builtin.command: "{{ _virt_install_cmd | replace('\n', '') }}"
   become: true
   changed_when: true
+  register: _virt_install_logs
   ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Show install logs when required
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  when: libvirt_display_installation_logs
+  loop: "{{ _virt_install_logs.stdout_lines }}"
+  changed_when: true
 
 - name: Autostart VM
   community.libvirt.virt:

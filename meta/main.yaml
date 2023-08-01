@@ -30,6 +30,25 @@ argument_specs:
     description: |
       This entrypoint adds libvirt VMs to the system, optionally using cloud-init.
     options:
+
+      libvirt_install_packages:
+        type: bool
+        required: false
+        default: true
+        description: boolean flag on whether to install the required packages
+
+      libvirt_check_kvm:
+        type: bool
+        required: false
+        default: true
+        description: boolean flag on whether to check whether KVM works
+
+      libvirt_display_installation_logs:
+        type: bool
+        required: false
+        default: false
+        description: boolean flag on whether to display installation logs
+
       libvirt_pools:
         type: list
         elements: dict
@@ -65,17 +84,11 @@ argument_specs:
             required: true
             description: "the libvirt XML definition of the network"
 
-      libvirt_cloud_init_enable_ssh_ca:
+      libvirt_cloud_init_custom:
         type: bool
         required: false
         default: true
-        description: Whether to enable an ssh CA for all the libvirt VMs
-
-      libvirt_cloud_init_enable_ansible_pull:
-        type: bool
-        required: false
-        default: false
-        description: Whether to enable ansible pull for the libvirt VMs
+        description: Whether to enable cloud_init for all the libvirt VMs
 
       libvirt_cloud_init_add_to_known_hosts:
         type: bool
@@ -100,10 +113,10 @@ argument_specs:
             required: true
             description: "name of the VM"
 
-          ansible_user_passwd_hash:
-            type: str
-            required: true
-            description: "the password hash of the ansible user"
+          recreate:
+            type: bool
+            required: false
+            description: whether to re-create the VM if it already exists
 
           ram:
             type: int
@@ -160,24 +173,29 @@ argument_specs:
                 required: true
                 description: whether to enable ansible_pull for this VM
 
+              ansible_user_passwd_hash:
+                type: str
+                required: false
+                description: "the password hash of the ansible user"
+
               repo_owner:
                 type: str
-                required: true
+                required: false
                 description: The owner of the Github repo to use for Ansible pull.
 
               repo_name:
                 type: str
-                required: true
+                required: false
                 description: The name of the Github repo to use for Ansible pull.
 
               playbook_name:
                 type: str
-                required: true
+                required: false
                 description: Playbook name to use for Ansible pull.
 
               deploy_key_name:
                 type: str
-                required: true
+                required: false
                 description: Name of deploy key to use for Ansible pull.
 
           ssh_ca:
@@ -192,28 +210,28 @@ argument_specs:
 
               host_ca_privatekey:
                 type: str
-                required: true
+                required: false
                 description: The private key of the host ca to sign the Host key of the new machine with.
 
               host_ca_privatekey_pass:
                 type: str
-                required: true
+                required: false
                 description: The passphrase of private key of the host ca to sign the Host key of the new machine with.
 
               host_ca_publickey:
                 type: str
-                required: true
+                required: false
                 description: The public key of the host ca to embed in the machines known host file.
 
               user_ca_publickeys:
                 type: list
                 elements: str
-                required: true
+                required: false
                 description: A list of trusted public keys which are user CAs.
 
           cloud_init_userdata:
             type: dict
-            required: true
+            required: false
             description: cloud-init userdata, passed to underlying role cloud_init
             options:
               hostname:
@@ -280,7 +298,7 @@ argument_specs:
 
           cloud_init_networkdata:
             type: dict
-            required: true
+            required: false
             options:
               ipv4:
                 type: str

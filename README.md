@@ -1,4 +1,5 @@
 ![Molecule test](https://github.com/pimvh/libvirt/actions/workflows/test.yaml/badge.svg)
+
 # Requirements
 
 1. Ansible installed:
@@ -23,31 +24,36 @@ Review the variables as shown in defaults.
 
 # additional libvirt pools to created with XML definition
 libvirt_pools:
-  - name: nfs
+  - name: default
     dir: ""
-    xml: ""
+    # I recommend using a lookup here
+    xml: '{{ lookup("file", "pools/default.xml") }}'
 
 # additional libvirt networks to create
 libvirt_networks:
-  - name: ""
-    xml: ""
+  - name: default
+    dir: ""
+    # I recommend using a lookup here
+    xml: '{{ lookup("file", "networks/default.xml") }}'
 
 # Variables to pass to underlying cloud_init role
 # Cannot be set per VM
 libvirt_cloud_init_add_to_known_hosts: true
 libvirt_cloud_init_reboot_on_finish: true
+libvirt_cloud_init_custom: false
 
 # do not pass when you do not want ansible pull
 ansible_pull_config:
   enabled: true # to enable ansible pull
+  # these params are skippable if you disable this (enable: false)
   repo_owner: ""
   repo_name: ""
   playbook_name: ""
   deploy_key_name: "Ansible-pull deploy key" # name of the deploy as shown in Github
 
-# do no pass when you do not want an SSH CA
 ssh_ca_config:
-  enabled: true
+  enabled: true # to enable SSH CAs
+  # these params are skippable if you disable this (enable: false)
   host_ca_privatekey: "" # remember to check whether this has the correct line endings
   host_ca_privatekey_pass: "" # the passphrase of this private key of the host ca
   host_ca_publickey: "" # public key of the host ca
@@ -56,7 +62,6 @@ ssh_ca_config:
 
 libvirt_virtual_machines:
   - name: guest-01
-    ansible_user_passwd_hash: "{{ vault_passwords.ansible }}"
     ram: 2048
     disksize: 20
     vcpus: 2
@@ -72,7 +77,12 @@ libvirt_virtual_machines:
     ansible_pull: "{{ ansible_pull_config }}"
     ssh_ca: "{{ ssh_ca_config }}"
 
-    cloud_init_userdata: # This will be passed to underlying cloudinit role
+    # passing config like this is easiest (if you want the same across VMs)
+    ansible_pull: "{{ ansible_pull_config | combine({'ansible_user_passwd_hash': var_that_holds_password })}}"
+    ssh_ca: "{{ ssh_ca_config }}"
+
+    # This will be passed to underlying cloudinit role
+    cloud_init_userdata:
       hostname: guest-01
       fqdn: guest-01.example.com
       groups: []
@@ -81,10 +91,13 @@ libvirt_virtual_machines:
           gecos: John Doe
           shell: /bin/bash
           sudo: ALL=(ALL) NOPASSWD:ALL # Passwordless sudo, can be omitted
-          groups: sudo # for sudo access
+          groups: sudo                 # for sudo access
           lock_passwd: false
-          passwd: "passwordhash" # I recommend to use ansible filters for this: {{ guest01_password | password_hash('sha512') }}
+          # I recommend to use ansible filters for this: {{ guest01_password | password_hash('sha512') }}
+          # do not save secrets in plaintext.
+          passwd: "passwordhash"
       runcmd: []
+
     cloud_init_networkdata: # This will be passed to underlying cloudinit role
       # Either define IPs
       ipv4: << ipv4 >>
@@ -133,5 +146,4 @@ roles:
 
 # Future Improvements
 
-- Improve asserting around conditional variables
-- consider making the ansible_pull options pass to underlying cloudinit role passable per VM
+- clean up the cloud_init configuration

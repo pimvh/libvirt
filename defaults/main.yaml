@@ -2,7 +2,10 @@
 libvirt_pools: []
 libvirt_networks: []
 
-libvirt_cloud_init_enable_ssh_ca: true
+libvirt_install_packages: true
+libvirt_check_kvm: true
+libvirt_display_installation_logs: false
+libvirt_cloud_init_custom: true
 libvirt_cloud_init_add_to_known_hosts: true
 libvirt_cloud_init_reboot_on_finish: true
 
