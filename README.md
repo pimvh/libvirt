@@ -146,5 +146,4 @@ roles:
 
 # Future Improvements
 
-- Improve asserting around conditional variables
-- consider making the ansible_pull options pass to underlying cloudinit role passable per VM
+- clean up the cloud_init configuration

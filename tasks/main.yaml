@@ -1,7 +1,7 @@
 ---
 - name: Assert required variables for each VM are defined
   ansible.builtin.include_tasks:
-    file: assert_vm.yaml
+    file: assert_virtual_machine_attributes.yaml
     apply:
       delegate_to: localhost
       run_once: true

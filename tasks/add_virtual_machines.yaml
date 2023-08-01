@@ -48,7 +48,6 @@
         - name: Create VM with virt-install
           ansible.builtin.include_tasks:
             file: add_virtual_machines/create_vms.yaml
-
       always:
         - name: Remove cloud-init config directory
           ansible.builtin.file:
