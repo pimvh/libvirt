@@ -1,4 +1,23 @@
 ---
+- name: Destroy the VM when recreate is true
+  when: virtual_machine.recreate is sameas true
+  block:
+    - name: Destroy the VM
+      community.libvirt.virt:
+        name: "{{ virtual_machine.name }}"
+        state: destroyed
+      become: true
+      # cannot recreate when the VM did not exist before
+      failed_when: virtual_machine.name not in _existing_vms.list_vms
+
+    - name: Undefine the VM
+      community.libvirt.virt:
+        name: "{{ virtual_machine.name }}"
+        command: undefine
+      become: true
+      # cannot recreate when the VM did not exist before
+      failed_when: virtual_machine.name not in _existing_vms.list_vms
+
 - name: Get running VMs
   community.libvirt.virt:
     command: list_vms
@@ -6,14 +25,6 @@
   check_mode: false
   changed_when: false
   become: true
-
-- name: Destroy the VM when recreate is true
-  community.libvirt.virt:
-    name: "{{ virtual_machine.name }}"
-    command: undefine
-    state: destroyed
-  become: true
-  when: "virtual_machine.name in _existing_vms.list_vms"
 
 - name: Create VM when it is not running already
   when: "virtual_machine.name not in _existing_vms.list_vms"
