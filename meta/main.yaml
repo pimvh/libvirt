@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Pim van Helvoirt
+  author: pimvh
   description: role to provision VMs using libvirt with a KVM QEMU backend.
 
   license: GPL-3.0-only
